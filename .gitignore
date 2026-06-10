@@ -1,0 +1,26 @@
+# Model weights (too large for GitHub — 3.3 GB total)
+weights/
+
+# Generated index files (rebuilt by running python main.py index)
+faiss.index
+chunks.pkl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# MLflow local runs
+mlruns/
+
+# Mac
+.DS_Store
+
+# Environment variables
+.env
+
+# Temp files from embedding subprocess
+/tmp/*.json
+/tmp/*.npy
+.idea/

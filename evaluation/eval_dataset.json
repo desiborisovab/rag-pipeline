@@ -1,0 +1,22 @@
+[
+  {
+    "question": "Why do hydrogen and oxygen form polar covalent bonds within water molecules?",
+    "ground_truth": "Oxygen is more electronegative than hydrogen, generating a partial negative charge near the oxygen atoms."
+  },
+  {
+    "question": "Why are hydrogen bonds and van der Waals interactions necessary for cells?",
+    "ground_truth": "Hydrogen bonds and van der Waals interactions form weak associations between molecules, providing the necessary shape and structure of DNA and proteins to function in the body."
+  },
+  {
+    "question": "What are three examples of how the characteristics of water are important in maintaining life?",
+    "ground_truth": "First, the lower density of water as a solid versus a liquid allows ice to float, forming an insulating surface layer for aquatic life. Second, the high specific heat capacity of water insulates aquatic life or bodily fluids from temperature changes. Third, the high heat of vaporization of water allows animals to cool themselves by sweating."
+  },
+  {
+    "question": "Describe the pH scale and how it relates to living systems. Give an example of how drastic pH changes are prevented in living systems.",
+    "ground_truth": "The pH scale ranges from 0 to 14, where anything below 7 is acidic and above 7 is alkaline. The bicarbonate system in the human body buffers the blood."
+  },
+  {
+    "question": "Compare and contrast saturated and unsaturated triglycerides.",
+    "ground_truth": "Saturated triglycerides contain single bonds and are solids at room temperature, while unsaturated triglycerides contain double bonds and are liquids at room temperature."
+  }
+]
