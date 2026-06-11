@@ -1,0 +1,97 @@
+name: RAG Pipeline CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml numpy faiss-cpu sentence-transformers pytest
+
+      - name: Test config loads
+        run: |
+          python -c "
+          from utils.config import get_config
+          cfg = get_config()
+          assert 'embedding' in cfg
+          assert 'chunking' in cfg
+          assert 'retrieval' in cfg
+          print('config OK')
+          "
+
+      - name: Test ingestion
+        run: |
+          python -c "
+          from pipeline.ingest import load_document
+          docs = load_document(['docs/sample.txt'])
+          assert len(docs) > 0
+          assert 'text' in docs[0]
+          print(f'ingestion OK — {len(docs)} docs loaded')
+          "
+
+      - name: Test chunking
+        run: |
+          python -c "
+          from pipeline.ingest import load_document
+          from pipeline.chunk import chunk_documents
+          docs = load_document(['docs/sample.txt'])
+          chunks = chunk_documents(docs)
+          assert len(chunks) > 0
+          assert 'text' in chunks[0]
+          assert 'chunk_id' in chunks[0]
+          print(f'chunking OK — {len(chunks)} chunks created')
+          "
+
+      - name: Test embedding with small model
+        env:
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python -c "
+          from sentence_transformers import SentenceTransformer
+          import numpy as np
+          # Use small model in CI — no large weights needed
+          m = SentenceTransformer('all-MiniLM-L6-v2')
+          vecs = m.encode(['test chunk one', 'test chunk two'], normalize_embeddings=True)
+          assert vecs.shape == (2, 384)
+          print(f'embedding OK — shape {vecs.shape}')
+          "
+
+      - name: Test FAISS index build and search
+        env:
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python -c "
+          import faiss
+          import numpy as np
+          from sentence_transformers import SentenceTransformer
+
+          m = SentenceTransformer('all-MiniLM-L6-v2')
+          texts = ['ionic bonds form between ions', 'covalent bonds share electrons', 'electron transfer moves electrons']
+          vecs = m.encode(texts, normalize_embeddings=True).astype('float32')
+
+          index = faiss.IndexFlatIP(384)
+          index.add(vecs)
+
+          query = m.encode(['what are ionic bonds'], normalize_embeddings=True).astype('float32')
+          scores, ids = index.search(query, 2)
+
+          assert ids[0][0] == 0  # first chunk should be most relevant
+          print(f'FAISS OK — top result score: {scores[0][0]:.3f}')
+          "
