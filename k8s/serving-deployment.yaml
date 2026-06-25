@@ -1,0 +1,67 @@
+# Deploys the FastAPI query endpoint as a Kubernetes Deployment
+# A Deployment keeps the pod running and restarts it if it crashes
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-serving
+  labels:
+    app: rag-serving
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rag-serving
+  template:
+    metadata:
+      labels:
+        app: rag-serving
+    spec:
+      containers:
+        - name: rag-serving
+          image: rag-pipeline:latest
+          imagePullPolicy: Never
+          command: ["python", "main.py", "serve"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TOKENIZERS_PARALLELISM
+              value: "false"
+            - name: WEIGHTS_PATH
+              value: "/app/weights"
+          volumeMounts:
+            - name: weights-volume
+              mountPath: /app/weights
+            - name: index-volume
+              mountPath: /app/index
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "6Gi"
+              cpu: "4"
+      volumes:
+        - name: weights-volume
+          hostPath:
+            path: /weights
+            type: Directory
+        - name: index-volume
+          hostPath:
+            path: /index
+            type: Directory
+
+---
+# Service — exposes the deployment as a network endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-serving-service
+spec:
+  selector:
+    app: rag-serving
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: NodePort

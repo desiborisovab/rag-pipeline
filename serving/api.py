@@ -10,15 +10,6 @@ from retrieval.retrieve import retrieve
 from generation.generate import generate
 from tracking.mlflow_logger import log_query_run
 
-app = FastAPI(
-    title = "RAG API",
-    description="Production RAG pipeline -bg-large + cross encoder + TinyLlama",
-    version = "1.0.0"
-)
-
-_index = None
-_chunks = None
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _index, _chunks
@@ -31,6 +22,17 @@ async def lifespan(app: FastAPI):
     _index = None
     _chunks = None
     print("API shutdown, index released")
+
+app = FastAPI(
+    title = "RAG API",
+    description="Production RAG pipeline -bg-large + cross encoder + TinyLlama",
+    version = "1.0.0",
+    lifespan = lifespan
+)
+
+_index = None
+_chunks = None
+
 
 class QueryRequest(BaseModel):
     question: str

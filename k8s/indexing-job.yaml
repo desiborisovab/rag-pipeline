@@ -1,0 +1,44 @@
+# indexing-job.yaml
+# Runs the indexing pipeline as a Kubernetes Job
+# A Job runs once to completion — perfect for batch indexing
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-indexing
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: rag-indexing
+          image: rag-pipeline:latest
+          imagePullPolicy: Never
+          command: ["python", "main.py", "index", "docs/"]
+          env:
+            - name: TOKENIZERS_PARALLELISM
+              value: "false"
+            - name: WEIGHTS_PATH
+              value: "/app/weights"
+          volumeMounts:
+            - name: weights-volume
+              mountPath: /app/weights
+            - name: index-volume
+              mountPath: /app/index
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "6Gi"
+              cpu: "4"
+      volumes:
+        - name: weights-volume
+          hostPath:
+            path: /weights
+            type: Directory
+        - name: index-volume
+          hostPath:
+            path: /index
+            type: Directory
+  backoffLimit: 0
